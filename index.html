@@ -2,590 +2,758 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Калькулятор среднего балла</title>
+    <!-- PWA метатеги -->
+    <meta name="theme-color" content="#1f3e4c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1a1a1e">
+    <meta name="apple-mobile-web-app-title" content="Средний балл">
     <link rel="manifest" href="manifest.json">
-    <title>Средний балл</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231f3e4c'/%3E%3Ctext x='256' y='380' font-size='320' text-anchor='middle' fill='white' font-weight='bold'%3E📊%3C/text%3E%3C/svg%3E">
     <style>
-        :root {
-            --bg: #1a1a1e;
-            --card: #232329;
-            --card-alt: #292930;
-            --border: #353540;
-            --text: #e8e8ed;
-            --text-secondary: #8a8a96;
-            --accent: #6ea8fe;
-            --accent-glow: #6ea8fe55;
-            --slider-track: #353540;
-            --thumb: #f0f0f5;
-            --thumb-border: #5a5a68;
-            --danger: #e0556a;
-            --radius: 16px;
-            --radius-sm: 10px;
-            --gap: 10px;
-            --transition: 0.2s ease;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-font-smoothing: antialiased;
+        body {
+            background: linear-gradient(145deg, #eef2f7 0%, #d4dee9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+
+        .app-container {
+            max-width: 700px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .main-column {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(2px);
+            border-radius: 56px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 20px 22px 32px;
+        }
+
+        .right-column {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .marks-list-section {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(2px);
+            border-radius: 56px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 20px 22px 32px;
+        }
+
+        .floating-message-area {
+            margin: 4px 0 18px 0;
+            min-height: 68px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-feedback {
+            background: #1f3e4c;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 80px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(12px);
+            background: rgba(31, 62, 76, 0.92);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+
+        .action-feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .action-feedback span:first-child {
+            font-size: 1.6rem;
+        }
+
+        .stats-panel {
+            background: white;
+            border-radius: 48px;
+            padding: 20px 16px;
+            margin-bottom: 26px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: #f6f9fe;
+            border-radius: 32px;
+            padding: 14px 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #3a6685;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #0a2a3b;
+            line-height: 1.2;
+        }
+
+        .final-grade {
+            background: linear-gradient(125deg, #fae8c0, #f5b642);
+            border-radius: 48px;
+            padding: 14px 18px;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .final-grade .stat-label {
+            color: #523400;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .final-grade .stat-value {
+            font-size: 3.5rem;
+            color: #1e2a00;
+            font-weight: 800;
+        }
+
+        .grades-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin: 16px 0 24px;
+        }
+
+        .grade-btn {
+            border: none;
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 18px 0;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            font-family: monospace;
+            color: white;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+            background: #6c757d;
+            transform: scale(1);
+            min-height: 80px;
             touch-action: manipulation;
         }
 
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 8px 10px;
-            padding-bottom: calc(8px + var(--safe-bottom));
-            gap: var(--gap);
+        .grade-btn:active {
+            transform: scale(0.92);
         }
 
-        .top-panel {
-            display: flex;
-            gap: var(--gap);
-            flex-shrink: 0;
-            min-height: 100px;
-            height: clamp(100px, 18vh, 140px);
+        .btn-press-effect {
+            transform: scale(0.88) !important;
+            transition: transform 0.05s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
         }
 
-        .top-card {
-            flex: 1;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            min-width: 0;
-            text-align: center;
-            transition: all var(--transition);
-            position: relative;
-            overflow: hidden;
-            padding: 4px;
-        }
-
-        .top-card.middle {
-            background: var(--card-alt);
-            border-color: var(--accent);
-            box-shadow: 0 0 24px var(--accent-glow), inset 0 0 0 1px rgba(110, 168, 254, 0.08);
-            z-index: 1;
-        }
-
-        .top-card.right {
-            cursor: pointer;
-            transition: all var(--transition);
-            border-color: var(--border);
-        }
-        .top-card.right:active {
-            transform: scale(0.94);
-            transition: 0.08s ease;
-            border-color: var(--danger);
-            background: #2a2025;
-        }
-
-        .card-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-            font-weight: 500;
-            line-height: 1;
-            text-align: center;
+        .reset-all-btn {
             width: 100%;
-        }
-
-        .card-value {
-            font-size: 2.6rem;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            color: var(--text);
-            transition: color var(--transition);
-            text-align: center;
-            width: 100%;
-        }
-        .top-card.middle .card-value {
-            font-size: 3.4rem;
-            color: var(--accent);
-            letter-spacing: -0.03em;
-        }
-        .card-value.small {
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            letter-spacing: 0;
-            margin-top: 2px;
-        }
-
-        .reset-icon {
-            width: 38px;
-            height: 38px;
-            opacity: 0.7;
-            transition: all var(--transition);
-            stroke: var(--text-secondary);
-            display: block;
-            margin: 0 auto;
-        }
-        .top-card.right:active .reset-icon {
-            opacity: 1;
-            stroke: var(--danger);
-            transform: rotate(-90deg);
-        }
-
-        .sliders-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            overflow: hidden;
-            background: var(--card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 6px 8px;
-            min-height: 0;
-        }
-
-        .slider-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-height: 0;
-            padding: 1px 2px;
-            border-radius: var(--radius-sm);
-            transition: background 0.15s ease;
-        }
-        .slider-row:active {
-            background: rgba(255, 255, 255, 0.03);
-        }
-        .slider-row.active {
-            background: rgba(110, 168, 254, 0.06);
-        }
-
-        .grade-badge {
-            width: 38px;
-            height: 38px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.4rem;
-            letter-spacing: -0.01em;
-            color: var(--text);
-            background: var(--card-alt);
-            border: 1px solid var(--border);
-            transition: all var(--transition);
-        }
-        .slider-row.active .grade-badge {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 0 12px var(--accent-glow);
-        }
-        .grade-badge.high {
-            background: #1a2a1a;
-            border-color: #2d5a2d;
-            color: #7dca7d;
-        }
-        .grade-badge.low {
-            background: #2a1a1a;
-            border-color: #5a2d2d;
-            color: #ca7d7d;
-        }
-
-        .slider-wrap {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            height: 100%;
-        }
-
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 100%;
-            min-height: 32px;
-            background: transparent;
-            cursor: pointer;
-            outline: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
-            height: 8px;
-            border-radius: 10px;
-            background: var(--slider-track);
-            transition: background 0.15s ease;
-        }
-        .slider-row.active input[type="range"]::-webkit-slider-runnable-track {
-            background: #3d4555;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: var(--thumb);
-            border: 2px solid var(--thumb-border);
-            cursor: grab;
-            margin-top: -13px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-            transition: all 0.12s ease;
-        }
-        input[type="range"]::-webkit-slider-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.15);
-            border-color: var(--accent);
-            box-shadow: 0 4px 22px var(--accent-glow), 0 1px 3px rgba(0,0,0,0.3);
-        }
-
-        input[type="range"]::-moz-range-track {
-            height: 8px;
-            border-radius: 10px;
-            background: var(--slider-track);
+            background: linear-gradient(115deg, #e06c4a, #c94f2c);
             border: none;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: var(--thumb);
-            border: 2px solid var(--thumb-border);
-            cursor: grab;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-            transition: all 0.12s ease;
-        }
-        input[type="range"]::-moz-range-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.15);
-            border-color: var(--accent);
-            box-shadow: 0 4px 22px var(--accent-glow);
-        }
-
-        .count-input {
-            width: 48px;
-            height: 36px;
-            flex-shrink: 0;
-            font-weight: 600;
+            border-radius: 60px;
+            padding: 18px 0;
             font-size: 1.25rem;
-            letter-spacing: -0.01em;
-            text-align: center;
-            color: var(--text-secondary);
-            background: var(--card-alt);
-            border: 1px solid transparent;
-            border-radius: 10px;
-            outline: none;
-            transition: all var(--transition);
-            padding: 0 2px;
-            -moz-appearance: textfield;
-        }
-        .count-input::-webkit-inner-spin-button,
-        .count-input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .count-input:focus {
-            border-color: var(--accent);
-            color: var(--text);
-            background: #2a2a35;
-        }
-        .slider-row.active .count-input {
-            color: var(--text);
-            border-color: var(--border);
-            background: #2a2a35;
-        }
-        .count-input.zero {
-            opacity: 0.4;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 20px rgba(201, 79, 44, 0.35);
+            margin-top: 8px;
+            letter-spacing: 0.8px;
+            touch-action: manipulation;
         }
 
-        @media (max-width: 380px) {
-            .app {
-                padding: 6px 6px;
-                padding-bottom: calc(6px + var(--safe-bottom));
-                gap: 6px;
+        .reset-all-btn:active {
+            transform: scale(0.96);
+        }
+
+        .reset-all-btn span {
+            font-size: 1.5rem;
+        }
+
+        .marks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 0;
+        }
+
+        .marks-header-left span:first-child {
+            font-weight: 800;
+            color: #1e4a6e;
+            font-size: 1.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .marks-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 8px 4px;
+        }
+
+        .mark-bubble {
+            border-radius: 70px;
+            padding: 12px 20px;
+            font-weight: 800;
+            font-size: 1.7rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            color: white;
+            text-shadow: 0 2px 2px rgba(0,0,0,0.2);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .remove-mark {
+            background: rgba(0,0,0,0.25);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 44px;
+            font-size: 26px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+
+        .remove-mark:active {
+            background: rgba(255,255,255,0.5);
+            transform: scale(0.9);
+        }
+
+        .empty-marks {
+            color: #88a0b8;
+            font-style: italic;
+            font-size: 1.2rem;
+            padding: 48px 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(12px);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 70px;
+            font-size: 1rem;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideUp 0.25s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
             }
-            .top-panel {
-                min-height: 85px;
-                height: clamp(85px, 16vh, 120px);
-                gap: 6px;
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
             }
-            .top-card {
-                border-radius: 14px;
-                padding: 2px;
+        }
+
+        @media (max-width: 550px) {
+            body {
+                padding: 12px;
             }
-            .card-label {
-                font-size: 10px;
-                letter-spacing: 0.05em;
+            .main-column, .marks-list-section {
+                padding: 16px 18px 26px;
             }
-            .card-value {
+            .grades-grid {
+                gap: 10px;
+            }
+            .grade-btn {
+                font-size: 1.7rem;
+                padding: 14px 0;
+                min-height: 70px;
+            }
+            .stat-value {
                 font-size: 2rem;
             }
-            .top-card.middle .card-value {
-                font-size: 2.6rem;
+            .final-grade .stat-value {
+                font-size: 2.8rem;
             }
-            .card-value.small {
-                font-size: 1rem;
+            .mark-bubble {
+                font-size: 1.5rem;
+                padding: 9px 16px;
+                gap: 10px;
             }
-            .reset-icon {
-                width: 30px;
-                height: 30px;
+            .remove-mark {
+                width: 38px;
+                height: 38px;
+                font-size: 22px;
             }
-            .grade-badge {
-                width: 32px;
-                height: 32px;
-                font-size: 1.2rem;
+            .marks-header-left span:first-child {
+                font-size: 1.35rem;
             }
-            .count-input {
-                width: 42px;
-                height: 32px;
+            .reset-all-btn {
+                padding: 14px 0;
                 font-size: 1.1rem;
             }
-            input[type="range"]::-webkit-slider-thumb {
-                width: 28px;
-                height: 28px;
-                margin-top: -10px;
+            .action-feedback {
+                padding: 10px 20px;
+                font-size: 1rem;
             }
-            input[type="range"]::-moz-range-thumb {
-                width: 28px;
-                height: 28px;
+            .toast {
+                font-size: 0.9rem;
+                padding: 10px 20px;
+                white-space: nowrap;
             }
-            .sliders-container {
-                padding: 4px 5px;
-                gap: 2px;
+        }
+
+        @media (max-width: 420px) {
+            .grades-grid {
+                gap: 8px;
             }
-            .slider-row {
-                gap: 6px;
+            .grade-btn {
+                font-size: 1.5rem;
+                padding: 12px 0;
+                min-height: 64px;
+            }
+            .stat-item {
+                padding: 10px 4px;
+            }
+            .stat-value {
+                font-size: 1.7rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
             }
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="top-panel">
-            <div class="top-card" id="leftCard">
-                <span class="card-label">средний балл</span>
-                <span class="card-value" id="avgDisplay">0.00</span>
-                <span class="card-value small" id="countDisplay">0</span>
-            </div>
-            <div class="top-card middle" id="middleCard">
-                <span class="card-label">итоговая</span>
-                <span class="card-value" id="finalGrade">0</span>
-            </div>
-            <div class="top-card right" id="resetBtn" title="Сброс">
-                <svg class="reset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="1 4 1 10 7 10"/>
-                    <path d="M4 16a9 9 0 1 0 3-11.7"/>
-                </svg>
-                <span class="card-label" style="margin-top:2px;">сброс</span>
+
+<div class="app-container">
+    <div class="main-column">
+        <div class="floating-message-area" id="floatingMessageArea">
+            <div class="action-feedback" id="actionFeedback">
+                <span>✨</span>
+                <span id="feedbackText">Отметка добавлена</span>
             </div>
         </div>
 
-        <div class="sliders-container" id="slidersContainer"></div>
+        <div class="stats-panel">
+            <div class="stat-row">
+                <div class="stat-item">
+                    <div class="stat-label">📊 Сумма</div>
+                    <div class="stat-value" id="sumDisplay">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">🔢 Количество</div>
+                    <div class="stat-value" id="countDisplay">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">🎯 Среднее</div>
+                    <div class="stat-value" id="avgHundredths">—</div>
+                </div>
+            </div>
+            <div class="final-grade">
+                <div class="stat-label">⭐ ИТОГОВАЯ</div>
+                <div class="stat-value" id="finalGrade">—</div>
+            </div>
+        </div>
+
+        <div class="grades-grid" id="gradesGrid"></div>
+
+        <button class="reset-all-btn" id="globalResetBtn">
+            <span>🗑️</span> Очистить всё
+        </button>
     </div>
 
-    <script>
-        // Регистрация сервис-воркера
+    <div class="right-column">
+        <div class="marks-list-section">
+            <div class="marks-header" id="marksHeader">
+                <div class="marks-header-left">
+                    <span>📝 Список</span>
+                </div>
+            </div>
+            <div id="marksContainer" class="marks-bubbles"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let gradesArray = [];
+    let longPressTimer = null;
+    let currentFeedbackTimeout = null;
+
+    const sumDisplay = document.getElementById('sumDisplay');
+    const countDisplay = document.getElementById('countDisplay');
+    const avgHundredthsSpan = document.getElementById('avgHundredths');
+    const finalGradeSpan = document.getElementById('finalGrade');
+    const marksContainer = document.getElementById('marksContainer');
+    const gradesGrid = document.getElementById('gradesGrid');
+    const marksHeader = document.getElementById('marksHeader');
+    const globalResetBtn = document.getElementById('globalResetBtn');
+    
+    const actionFeedback = document.getElementById('actionFeedback');
+    const feedbackTextSpan = document.getElementById('feedbackText');
+
+    function getGradeColor(grade) {
+        const t = (grade - 1) / 9;
+        const r = Math.floor(220 - t * 170);
+        const g = Math.floor(40 + t * 180);
+        const b = 45;
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function getDeletedMarkWord(n) {
+        if (n === 0) return '';
+        if (n % 10 === 1 && n % 100 !== 11) return 'отметка';
+        if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'отметки';
+        return 'отметок';
+    }
+
+    function showToast(message, duration = 1800) {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, duration);
+    }
+
+    function showFloatingMessage(text, emoji = '✨') {
+        if (currentFeedbackTimeout) {
+            clearTimeout(currentFeedbackTimeout);
+        }
+        feedbackTextSpan.textContent = text;
+        const iconSpan = actionFeedback.querySelector('span:first-child');
+        if (iconSpan) iconSpan.textContent = emoji;
+        
+        actionFeedback.classList.add('show');
+        
+        currentFeedbackTimeout = setTimeout(() => {
+            actionFeedback.classList.remove('show');
+        }, 1600);
+    }
+
+    function animateButtonPress(gradeValue) {
+        const buttons = document.querySelectorAll('.grade-btn');
+        let targetBtn = null;
+        for (let btn of buttons) {
+            if (parseInt(btn.textContent) === gradeValue) {
+                targetBtn = btn;
+                break;
+            }
+        }
+        if (targetBtn) {
+            targetBtn.classList.add('btn-press-effect');
+            setTimeout(() => {
+                targetBtn.classList.remove('btn-press-effect');
+            }, 120);
+        }
+    }
+
+    function updateAll() {
+        const sum = gradesArray.reduce((s, v) => s + v, 0);
+        const count = gradesArray.length;
+        
+        sumDisplay.textContent = sum;
+        countDisplay.textContent = count;
+        
+        if (count === 0) {
+            avgHundredthsSpan.textContent = '—';
+            finalGradeSpan.textContent = '—';
+        } else {
+            const avg = sum / count;
+            avgHundredthsSpan.textContent = avg.toFixed(2);
+            const finalGrade = Math.round(avg);
+            finalGradeSpan.textContent = finalGrade;
+        }
+        
+        renderMarks();
+        saveToLocalStorage();
+    }
+
+    function renderMarks() {
+        if (gradesArray.length === 0) {
+            marksContainer.innerHTML = '<div class="empty-marks">Нет отметок</div>';
+            return;
+        }
+        
+        marksContainer.innerHTML = '';
+        gradesArray.forEach((grade, idx) => {
+            const bubble = document.createElement('div');
+            bubble.className = 'mark-bubble';
+            bubble.style.background = getGradeColor(grade);
+            bubble.innerHTML = `
+                <span>${grade}</span>
+                <button class="remove-mark" data-idx="${idx}">✕</button>
+            `;
+            marksContainer.appendChild(bubble);
+        });
+        
+        document.querySelectorAll('.remove-mark').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.getAttribute('data-idx'));
+                if (!isNaN(idx) && idx >= 0 && idx < gradesArray.length) {
+                    const deletedMark = gradesArray[idx];
+                    gradesArray.splice(idx, 1);
+                    updateAll();
+                    showFloatingMessage(`Удалена ${deletedMark}`, '🗑️');
+                    showToast(`❌ ${deletedMark} удалена`, 1200);
+                }
+            };
+        });
+    }
+
+    function addGrade(grade) {
+        if (grade < 1 || grade > 10) return;
+        
+        animateButtonPress(grade);
+        gradesArray.push(grade);
+        updateAll();
+        
+        showFloatingMessage(`+${grade}`, '➕');
+        showToast(`➕ ${grade}`, 900);
+    }
+
+    function clearAllGrades() {
+        if (gradesArray.length === 0) {
+            showFloatingMessage('Список пуст', '✨');
+            showToast('Нет отметок', 1300);
+            return;
+        }
+        const count = gradesArray.length;
+        gradesArray = [];
+        updateAll();
+        showFloatingMessage(`Очищено ${count} ${getDeletedMarkWord(count)}`, '🧹');
+        showToast(`🗑️ Удалено ${count} ${getDeletedMarkWord(count)}`);
+        
+        if (globalResetBtn) {
+            globalResetBtn.style.transform = 'scale(0.96)';
+            setTimeout(() => {
+                globalResetBtn.style.transform = '';
+            }, 180);
+        }
+    }
+
+    function createGradeButtons() {
+        gradesGrid.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'grade-btn';
+            btn.textContent = i;
+            btn.style.background = getGradeColor(i);
+            btn.onclick = () => addGrade(i);
+            gradesGrid.appendChild(btn);
+        }
+    }
+
+    function setupLongPressClear() {
+        if (!marksHeader) return;
+        
+        let pressTimer = null;
+        
+        function startPress(e) {
+            e.preventDefault();
+            pressTimer = setTimeout(() => {
+                clearAllGrades();
+                marksHeader.style.opacity = '0.7';
+                setTimeout(() => {
+                    marksHeader.style.opacity = '1';
+                }, 200);
+                showFloatingMessage('Очистка', '⌛');
+            }, 550);
+        }
+        
+        function cancelPress() {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        }
+        
+        marksHeader.addEventListener('mousedown', startPress);
+        marksHeader.addEventListener('mouseup', cancelPress);
+        marksHeader.addEventListener('mouseleave', cancelPress);
+        marksHeader.addEventListener('touchstart', startPress, { passive: false });
+        marksHeader.addEventListener('touchend', cancelPress);
+        marksHeader.addEventListener('touchcancel', cancelPress);
+    }
+
+    function setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            const key = e.key;
+            
+            if (key >= '1' && key <= '9') {
+                e.preventDefault();
+                const grade = parseInt(key);
+                animateButtonPress(grade);
+                gradesArray.push(grade);
+                updateAll();
+                showFloatingMessage(`+${grade} (⌨️)`, '⌨️');
+                showToast(`⌨️ ${grade}`, 800);
+            }
+            else if (key === '0') {
+                e.preventDefault();
+                animateButtonPress(10);
+                gradesArray.push(10);
+                updateAll();
+                showFloatingMessage(`+10 (⌨️)`, '⌨️');
+                showToast(`⌨️ 10`, 800);
+            }
+            else if (key === 'Delete' || key === 'Del') {
+                e.preventDefault();
+                if (gradesArray.length > 0) {
+                    const lastGrade = gradesArray[gradesArray.length - 1];
+                    gradesArray.pop();
+                    updateAll();
+                    showFloatingMessage(`Удалена ${lastGrade}`, '⌨️🗑️');
+                    showToast(`⌨️ Удалена ${lastGrade}`);
+                } else {
+                    showFloatingMessage('Нет отметок', '⚠️');
+                }
+            }
+            else if (key === 'Backspace' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                clearAllGrades();
+                showFloatingMessage('Сброс', '🧹');
+            }
+        });
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('grades', JSON.stringify(gradesArray));
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('grades');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    gradesArray = parsed.filter(v => typeof v === 'number' && v >= 1 && v <= 10);
+                    updateAll();
+                }
+            } catch(e) {}
+        }
+    }
+
+    // Регистрация Service Worker для PWA
+    function registerSW() {
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed:', err));
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('SW registered:', reg);
+            }).catch(err => {
+                console.error('SW registration failed:', err);
             });
         }
+    }
 
-        (function() {
-            const GRADES = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
-            const MAX_COUNT = 30;
-            const slidersContainer = document.getElementById('slidersContainer');
-            const avgDisplay = document.getElementById('avgDisplay');
-            const countDisplay = document.getElementById('countDisplay');
-            const finalGrade = document.getElementById('finalGrade');
-            const resetBtn = document.getElementById('resetBtn');
-            const middleCard = document.getElementById('middleCard');
-
-            const sliders = {};
-
-            GRADES.forEach((grade) => {
-                const row = document.createElement('div');
-                row.className = 'slider-row';
-                row.dataset.grade = grade;
-
-                const badge = document.createElement('div');
-                badge.className = 'grade-badge';
-                if (grade >= 9) badge.classList.add('high');
-                if (grade <= 2) badge.classList.add('low');
-                badge.textContent = grade;
-                row.appendChild(badge);
-
-                const wrap = document.createElement('div');
-                wrap.className = 'slider-wrap';
-                const rangeInput = document.createElement('input');
-                rangeInput.type = 'range';
-                rangeInput.min = 0;
-                rangeInput.max = MAX_COUNT;
-                rangeInput.value = 0;
-                rangeInput.step = 1;
-                rangeInput.setAttribute('aria-label', 'Количество ' + grade);
-                wrap.appendChild(rangeInput);
-                row.appendChild(wrap);
-
-                const countInput = document.createElement('input');
-                countInput.type = 'number';
-                countInput.className = 'count-input zero';
-                countInput.value = 0;
-                countInput.min = 0;
-                countInput.max = MAX_COUNT;
-                countInput.step = 1;
-                countInput.inputMode = 'numeric';
-                countInput.setAttribute('aria-label', 'Число ' + grade);
-                row.appendChild(countInput);
-
-                slidersContainer.appendChild(row);
-                sliders[grade] = { rangeInput, countInput, rowEl: row };
-            });
-
-            function updateSliderFill(rangeInput) {
-                const val = parseInt(rangeInput.value);
-                const max = parseInt(rangeInput.max) || MAX_COUNT;
-                const pct = (val / max) * 100;
-                rangeInput.style.setProperty('--fill-pct', pct + '%');
-            }
-
-            function clampAndSync(grade) {
-                const { rangeInput, countInput } = sliders[grade];
-                let raw = countInput.value.trim();
-                let newVal = 0;
-                if (raw === '') {
-                    newVal = 0;
-                } else {
-                    let parsed = parseInt(raw, 10);
-                    if (isNaN(parsed)) newVal = 0;
-                    else newVal = Math.min(MAX_COUNT, Math.max(0, parsed));
-                }
-                countInput.value = newVal;
-                rangeInput.value = newVal;
-                updateSliderFill(rangeInput);
-            }
-
-            function updateAll() {
-                let totalSum = 0;
-                let totalCount = 0;
-
-                GRADES.forEach(grade => {
-                    const { countInput, rowEl } = sliders[grade];
-                    let val = parseInt(countInput.value) || 0;
-                    val = Math.min(MAX_COUNT, Math.max(0, val));
-                    countInput.value = val;
-                    sliders[grade].rangeInput.value = val;
-
-                    totalSum += grade * val;
-                    totalCount += val;
-
-                    if (val === 0) {
-                        countInput.classList.add('zero');
-                        rowEl.classList.remove('active');
-                    } else {
-                        countInput.classList.remove('zero');
-                        rowEl.classList.add('active');
-                    }
-                    updateSliderFill(sliders[grade].rangeInput);
-                });
-
-                const avg = totalCount > 0 ? totalSum / totalCount : 0;
-                const avgRounded = Math.round(avg * 100) / 100;
-                const finalRounded = Math.round(avgRounded);
-
-                avgDisplay.textContent = avgRounded.toFixed(2);
-                finalGrade.textContent = finalRounded;
-                countDisplay.textContent = totalCount;
-
-                middleCard.style.transform = 'scale(1.03)';
-                setTimeout(() => {
-                    middleCard.style.transform = 'scale(1)';
-                }, 120);
-            }
-
-            GRADES.forEach(grade => {
-                const { rangeInput, countInput } = sliders[grade];
-
-                rangeInput.addEventListener('input', () => {
-                    countInput.value = rangeInput.value;
-                    updateAll();
-                });
-
-                countInput.addEventListener('input', () => {
-                    clampAndSync(grade);
-                    updateAll();
-                });
-
-                countInput.addEventListener('blur', () => {
-                    clampAndSync(grade);
-                    updateAll();
-                });
-
-                updateSliderFill(rangeInput);
-            });
-
-            resetBtn.addEventListener('click', () => {
-                GRADES.forEach(grade => {
-                    const { rangeInput, countInput, rowEl } = sliders[grade];
-                    rangeInput.value = 0;
-                    countInput.value = 0;
-                    countInput.classList.add('zero');
-                    rowEl.classList.remove('active');
-                    updateSliderFill(rangeInput);
-                });
-                updateAll();
-                resetBtn.style.borderColor = 'var(--danger)';
-                resetBtn.style.boxShadow = '0 0 20px rgba(224,85,106,0.3)';
-                setTimeout(() => {
-                    resetBtn.style.borderColor = 'var(--border)';
-                    resetBtn.style.boxShadow = 'none';
-                }, 300);
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'r' || e.key === 'R') {
-                    if (document.activeElement?.tagName !== 'INPUT' || document.activeElement?.type === 'range') {
-                        resetBtn.click();
-                    }
-                }
-            });
-
+    function init() {
+        createGradeButtons();
+        loadFromLocalStorage();
+        if (gradesArray.length === 0) {
             updateAll();
-            window.addEventListener('resize', () => {
-                GRADES.forEach(grade => updateSliderFill(sliders[grade].rangeInput));
+        }
+        setupLongPressClear();
+        setupKeyboardShortcuts();
+        registerSW();
+        
+        if (globalResetBtn) {
+            globalResetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                clearAllGrades();
             });
-        })();
-    </script>
+        }
+        
+        setTimeout(() => {
+            showFloatingMessage('Готово', '🎯');
+        }, 400);
+        
+        showToast('Нажмите на отметку', 2000);
+    }
+    
+    init();
+</script>
 </body>
 </html>
